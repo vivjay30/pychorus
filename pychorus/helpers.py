@@ -108,6 +108,21 @@ def draw_lines(num_samples, sample_rate, lines):
     plt.show()
 
 
+def create_chroma(input_file, n_fft=N_FFT):
+    """
+    Generate the notes present in a song
+
+    Returns: tuple of 12 x n chroma, song wav data, sample rate (usually 22050)
+             and the song length in seconds
+    """
+    y, sr = librosa.load(input_file)
+    song_length_sec = y.shape[0] / float(sr)
+    S = np.abs(librosa.stft(y, n_fft=n_fft))**2
+    chroma = librosa.feature.chroma_stft(S=S, sr=sr)
+
+    return chroma, y, sr, song_length_sec
+
+
 def find_chorus(chroma, sr, song_length_sec, clip_length):
     """
     Find the most repeated chorus
@@ -117,10 +132,11 @@ def find_chorus(chroma, sr, song_length_sec, clip_length):
         sr: sample rate of the song, usually 22050
         song_length_sec: length in seconds of the song (lost in processing chroma)
         clip_length: minimum length in seconds we want our chorus to be (at least 10-15s)
+
+    Returns: Time in seconds of the start of the best chorus
     """
     num_samples = chroma.shape[1]
 
-    print("Calculating time lag similarity matrix")
     time_time_similarity = TimeTimeSimilarityMatrix(chroma, sr)
     time_lag_similarity = TimeLagSimilarityMatrix(chroma, sr)
 
@@ -145,7 +161,7 @@ def find_chorus(chroma, sr, song_length_sec, clip_length):
     return best_chorus.start / chroma_sr
 
 
-def find_and_output_chorus(input_file, output_file, clip_length):
+def find_and_output_chorus(input_file, output_file, clip_length=15):
     """
     Finds the most repeated chorus from input_file and outputs to output file.
 
@@ -157,12 +173,7 @@ def find_and_output_chorus(input_file, output_file, clip_length):
 
     Returns: Time in seconds of the start of the best chorus
     """
-    print("Loading file")
-    y, sr = librosa.load(input_file)
-    song_length_sec = y.shape[0] / float(sr)
-    S = np.abs(librosa.stft(y, n_fft=N_FFT))**2
-    chroma = librosa.feature.chroma_stft(S=S, sr=sr)
-
+    chroma, song_wav_data, sr, song_length_sec = create_chroma(input_file)
     chorus_start = find_chorus(chroma, sr, song_length_sec, clip_length)
     if chorus_start is None:
         return
@@ -171,7 +182,7 @@ def find_and_output_chorus(input_file, output_file, clip_length):
         chorus_start // 60, chorus_start % 60))
 
     if output_file is not None:
-        chorus_wave_data = y[int(chorus_start*sr) : int((chorus_start+clip_length)*sr)]
+        chorus_wave_data = song_wav_data[int(chorus_start*sr) : int((chorus_start+clip_length)*sr)]
         sf.write(output_file, chorus_wave_data, sr)
         #librosa.output.write_wav(output_file, chorus_wave_data, sr)
 
