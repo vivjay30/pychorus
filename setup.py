@@ -15,6 +15,6 @@ setup(
     'scipy',
     'soundfile',
     'matplotlib'
-  ]
+  ],
   classifiers = [],
 )

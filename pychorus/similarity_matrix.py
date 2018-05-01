@@ -20,7 +20,12 @@ class SimilarityMatrix(object):
 
     @abstractmethod
     def compute_similarity_matrix(self, chroma):
-        """"The specific type of similarity matrix we want to compute"""
+        """"
+        The specific type of similarity matrix we want to compute
+
+        Args:
+            chroma: 12 x n numpy array of musical notes present at every time step
+        """
         pass
 
     def display(self):
@@ -45,10 +50,23 @@ class TimeTimeSimilarityMatrix(SimilarityMatrix):
     def compute_similarity_matrix(self, chroma):
         """Optimized way to compute the time-time similarity matrix with numpy broadcasting"""
         broadcast_x = np.expand_dims(chroma, 2)  # (12 x n x 1)
-        broadcast_y = np.swapaxes(np.expand_dims(chroma, 2), 1, 2)  # (12 x 1 x n)
+        broadcast_y = np.swapaxes(np.expand_dims(chroma, 2), 1,
+                                  2)  # (12 x 1 x n)
         time_time_matrix = 1 - (np.linalg.norm(
             (broadcast_x - broadcast_y), axis=0) / sqrt(12))
         return time_time_matrix
+
+    def compute_similarity_matrix_slow(self, chroma):
+        """Slow but straightforward way to compute time time similarity matrix"""
+        num_samples = chroma.shape[1]
+        time_time_similarity = np.zeros((num_samples, num_samples))
+        for i in range(num_samples):
+            for j in range(num_samples):
+                # For every pair of samples, check similarity
+                time_time_similarity[i, j] = 1 - (
+                    np.linalg.norm(chroma[:, i] - chroma[:, j]) / sqrt(12))
+
+        return time_time_similarity
 
 
 class TimeLagSimilarityMatrix(SimilarityMatrix):
@@ -71,6 +89,19 @@ class TimeLagSimilarityMatrix(SimilarityMatrix):
             (broadcast_x - circulant_y), axis=0) / sqrt(12))
         time_lag_similarity = np.rot90(time_lag_similarity, k=1, axes=(0, 1))
         return time_lag_similarity[:num_samples, :num_samples]
+
+    def compute_similarity_matrix_slow(self, chroma):
+        """Slow but straightforward way to compute time lag similarity matrix"""
+        num_samples = chroma.shape[1]
+        time_lag_similarity = np.zeros((num_samples, num_samples))
+        for i in range(num_samples):
+            for j in range(i + 1):
+                # For every pair of samples, check similarity using lag
+                # [j, i] because numpy indexes by column then row
+                time_lag_similarity[j, i] = 1 - (
+                    np.linalg.norm(chroma[:, i] - chroma[:, i - j]) / sqrt(12))
+
+        return time_lag_similarity
 
     def denoise(self, time_time_matrix, smoothing_size):
         """
@@ -113,7 +144,6 @@ class TimeLagSimilarityMatrix(SimilarityMatrix):
                 ll_average[y, x] = diagonal_moving_average[x - y, x]
                 ur_average[y, x] = diagonal_moving_average[x - y,
                                                            x + smoothing_size - 1]
-
 
         non_horizontal_max = np.maximum.reduce([down_average, up_average, ll_average, ur_average])
         non_horizontal_min = np.minimum.reduce([up_average, down_average, ll_average, ur_average])
