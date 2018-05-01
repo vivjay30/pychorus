@@ -1,8 +1,8 @@
 # Pychorus
 
-This is an open source library to find choruses or interesting sections in pieces of music. The algorithm is largely based on [a paper](https://pdfs.semanticscholar.org/f120/3fb2efe2f251ea7c221c9eaca95cc163594b.pdf) by Masataka Goto with some simplifications and modifications. There is room for improvement so feel free to the project.
+This is an open source library to find choruses or interesting sections in pieces of music. The algorithm is largely based on [a paper](https://pdfs.semanticscholar.org/f120/3fb2efe2f251ea7c221c9eaca95cc163594b.pdf) by Masataka Goto with some simplifications and modifications. There is room for improvement so feel free to contribute to the project.
 
-See the blog post here: (coming soon) for a full explanation on how the library works
+Check out the blog post: (coming soon) for a full explanation on how the library works
 
 ## Getting Started
 
@@ -25,8 +25,10 @@ chorus_start_sec = find_and_output_chorus("path/to/audio_file", "path/to/output_
 You can also clone the repo and use main.py as a command line tool like
 ```
 python main.py path/to/audio_file --output_file=path/to/output_file
+```
 
-Creating the chromogram, time-time, and time-lag matrices
+### Creating the chromogram, time-time, and time-lag matrices
+
 ```
 from pychorus import create_chroma
 from pychorus.similarity_matrix import TimeTimeSimilarityMatrix, TimeLagSimilarityMatrix
