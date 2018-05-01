@@ -1,6 +1,6 @@
 # Pychorus
 
-This is an open source library to find choruses or interesting sections in pieces of music. The algorithm is largely based on [a paper](https://pdfs.semanticscholar.org/f120/3fb2efe2f251ea7c221c9eaca95cc163594b.pdf) by Masataka Goto with some simplifications and modifications. There is room for improvement so feel free to contribute to the project.
+Pychorus is an open source library to find choruses or interesting sections in pieces of music. The algorithm is largely based on [a paper](https://pdfs.semanticscholar.org/f120/3fb2efe2f251ea7c221c9eaca95cc163594b.pdf) by Masataka Goto with some simplifications and modifications. There is room for improvement so feel free to contribute to the project.
 
 Check out the blog post: (coming soon) for a full explanation on how the library works
 
