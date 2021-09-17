@@ -120,7 +120,7 @@ def create_chroma(input_file, n_fft=N_FFT):
     S = np.abs(librosa.stft(y, n_fft=n_fft))**2
     chroma = librosa.feature.chroma_stft(S=S, sr=sr)
 
-    return chroma, y, sr, song_length_sec
+    return chroma, sr, song_length_sec
 
 
 def find_chorus(chroma, sr, song_length_sec, clip_length):
@@ -173,7 +173,7 @@ def find_and_output_chorus(input_file, output_file, clip_length=15):
 
     Returns: Time in seconds of the start of the best chorus
     """
-    chroma, song_wav_data, sr, song_length_sec = create_chroma(input_file)
+    chroma, sr, song_length_sec = create_chroma(input_file)
     chorus_start = find_chorus(chroma, sr, song_length_sec, clip_length)
     if chorus_start is None:
         return
@@ -182,8 +182,9 @@ def find_and_output_chorus(input_file, output_file, clip_length=15):
         chorus_start // 60, chorus_start % 60))
 
     if output_file is not None:
-        chorus_wave_data = song_wav_data[int(chorus_start*sr) : int((chorus_start+clip_length)*sr)]
-        sf.write(output_file, chorus_wave_data, sr)
-        #librosa.output.write_wav(output_file, chorus_wave_data, sr)
+        input_file_info = sf.info(input_file)
+        input_sample_rate = input_file_info.samplerate
+        original_wav_data, _ = sf.read(input_file, int(clip_length * input_sample_rate), int(chorus_start * input_sample_rate))
+        sf.write(output_file, original_wav_data, input_sample_rate, format=input_file_info.format)
 
     return chorus_start
